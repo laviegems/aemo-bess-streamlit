@@ -2,15 +2,14 @@ import os, pandas as pd, streamlit as st
 from pathlib import Path
 
 st.set_page_config(page_title="AEMO 5-min SCADA MW", layout="wide")
-# 🔁 Auto-refresh every 5 minutes (300000 ms). Adjust if you want.
-st_autorefresh = st.experimental_rerun if False else None
-st.experimental_set_query_params()  # no-op; just ensures Streamlit imports are ready
-st_autorefresh = st.experimental_rerun  # back-compat shim
-st_autorefresh = st.autorefresh = getattr(st, "autorefresh", None) or (lambda **kw: None)
-st.autorefresh(interval=300_000, key="auto_refresh")   # every 5 minutes
+
+# ✅ Safe optional auto-refresh (works only if your Streamlit version supports it)
+if hasattr(st, "autorefresh"):
+    st.autorefresh(interval=300_000, key="auto_refresh_5min")  # 5 minutes
 
 DATA_DIR = os.getenv("AEMO_DATA_DIR", "data/aemo")
 st.title("AEMO 5-min MW — Per-DUID view")
+
 
 def load_all():
     files = sorted(Path(DATA_DIR).glob("aemo_*_*_5min.csv"))
