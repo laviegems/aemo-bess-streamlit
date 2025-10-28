@@ -1,16 +1,17 @@
-name: Daily AEMO Fetch (Agentic BESS Monitor)
+name: Daily AEMO Fetch
 
 on:
   schedule:
-    - cron: '15 13 * * *'   # ~00:15 AEDT / ~23:15 AEST
+    - cron: '15 13 * * *'   # runs daily ~00:15 AEDT / ~23:15 AEST
   workflow_dispatch: {}
 
 permissions:
   contents: write
 
 env:
-  DUIDS: "CLUNY,BUTLERSG"   # <— change here to the units you want
-  SOURCE: "auto"
+  # 👇 set the DUIDs you actually want. Use "*" for all.
+  DUIDS: "CLUNY,BUTLERSG"
+  SOURCE: "auto"  # auto = try ARCHIVE (yesterday), fallback CURRENT
 
 jobs:
   fetch:
@@ -32,17 +33,20 @@ jobs:
         id: dates
         run: |
           python - <<'PY'
-import datetime as dt, zoneinfo, os
+import datetime as dt, zoneinfo
 syd = zoneinfo.ZoneInfo("Australia/Sydney")
 now_syd = dt.datetime.now(tz=syd)
 yday = (now_syd - dt.timedelta(days=1)).strftime("%Y-%m-%d")
-print(f"day={yday}")
 print(f"::set-output name=day::{yday}")
 PY
 
       - name: Fetch AEMO data
         run: |
-          python src/fetch_aemo_duids_day.py --day "${{ steps.dates.outputs.day }}" --duids "${{ env.DUIDS }}" --source "${{ env.SOURCE }}" --outdir data/aemo
+          python -m src.fetch_aemo_duids_day \
+            --day "${{ steps.dates.outputs.day }}" \
+            --duids "${{ env.DUIDS }}" \
+            --source "${{ env.SOURCE }}" \
+            --outdir data/aemo
 
       - name: Commit & push
         run: |

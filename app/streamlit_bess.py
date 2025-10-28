@@ -1,13 +1,21 @@
 import os, pandas as pd, streamlit as st
 from pathlib import Path
 
-DATA_DIR = os.getenv("AEMO_DATA_DIR", "data/aemo")
 st.set_page_config(page_title="AEMO 5-min SCADA MW", layout="wide")
+# 🔁 Auto-refresh every 5 minutes (300000 ms). Adjust if you want.
+st_autorefresh = st.experimental_rerun if False else None
+st.experimental_set_query_params()  # no-op; just ensures Streamlit imports are ready
+st_autorefresh = st.experimental_rerun  # back-compat shim
+st_autorefresh = st.autorefresh = getattr(st, "autorefresh", None) or (lambda **kw: None)
+st.autorefresh(interval=300_000, key="auto_refresh")   # every 5 minutes
+
+DATA_DIR = os.getenv("AEMO_DATA_DIR", "data/aemo")
 st.title("AEMO 5-min MW — Per-DUID view")
 
 def load_all():
-    files = sorted(Path(DATA_DIR).glob("aemo_*_*_5min.csv"))  # any duid tag
-    if not files: return pd.DataFrame(columns=["timestamp","duid","power_MW"])
+    files = sorted(Path(DATA_DIR).glob("aemo_*_*_5min.csv"))
+    if not files:
+        return pd.DataFrame(columns=["timestamp","duid","power_MW","day"])
     dfs = []
     for f in files:
         df = pd.read_csv(f, parse_dates=["timestamp"])
@@ -20,9 +28,11 @@ if df.empty:
     st.warning("No data yet. Fetch once locally or wait for the daily job.")
     st.stop()
 
+# Always default to the latest day present in files
 days = sorted(df["day"].unique())
+latest_idx = len(days) - 1
 colA, colB = st.columns(2)
-day = colA.selectbox("Day", days, index=len(days)-1)
+day = colA.selectbox("Day", days, index=latest_idx)
 duids = sorted(df["duid"].unique())
 picked = colB.multiselect("DUID(s)", duids, default=[duids[0]])
 
@@ -39,7 +49,7 @@ for d in picked:
             power_min=("power_MW","min"),
             power_max=("power_MW","max"),
             power_mean=("power_MW","mean"),
-            energy_MWh=("power_MW", lambda s: (s.sum()*5/60.0))  # 5-min to MWh
+            energy_MWh=("power_MW", lambda s: (s.sum()*5/60.0))
         )
         st.dataframe(kpi, use_container_width=True, height=90)
         st.line_chart(sub.set_index("timestamp")["power_MW"])
