@@ -7,7 +7,7 @@ def read_banner_csv_from_zip(zpath: Path) -> pd.DataFrame:
     with zipfile.ZipFile(zpath, "r") as z:
         csvs = [n for n in z.namelist() if n.lower().endswith(".csv")]
         if not csvs: 
-            return pd.DataFrame()
+            return pd.DataFrame()   
         raw = z.read(csvs[0])
         df = pd.read_csv(io.BytesIO(raw), engine="python", sep=None, header=None, dtype=str)
         # find the header row (col4 == 'SETTLEMENTDATE')
