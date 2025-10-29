@@ -2,7 +2,6 @@ import os, pandas as pd, streamlit as st
 from pathlib import Path
 
 # ---- AI Summary panel (reads newest Markdown if present) ----
-from pathlib import Path
 import datetime as dt
 
 rep_dir = Path("data/reports")
@@ -71,3 +70,48 @@ for d in picked:
         )
         st.dataframe(kpi, use_container_width=True, height=90)
         st.line_chart(sub.set_index("timestamp")["power_MW"])
+
+# ---- Forecast panel (next-day) ----
+from pathlib import Path as _Path
+import pandas as _pd
+
+_fdir = _Path("data/forecast")
+_latest_fore = None
+if _fdir.exists():
+    _cand = sorted(_fdir.glob("forecast_*_nextday.csv"))
+    if _cand:
+        _latest_fore = _cand[-1]
+
+with st.expander("🔮 Next-day Forecast (per DUID)", expanded=False):
+    if _latest_fore:
+        fdf = _pd.read_csv(_latest_fore, parse_dates=["timestamp"])
+        day_next = fdf["timestamp"].dt.strftime("%Y-%m-%d").min()
+        st.caption(f"Forecast day: {day_next}  ·  Source: {_latest_fore.name}")
+        for d in picked:
+            subf = fdf[fdf["duid"] == d]
+            if subf.empty:
+                st.info(f"No forecast for {d}.")
+                continue
+            st.write(f"**{d}** forecast (MW)")
+            st.line_chart(subf.set_index("timestamp")["power_hat_MW"])
+    else:
+        st.info("No forecast file yet. It appears after the daily workflow runs.")
+
+# ---- Forecast ramp alerts ----
+_ra = None
+if _fdir.exists():
+    _cand = sorted(_fdir.glob("ramp_alerts_*_nextday.csv"))
+    if _cand:
+        _ra = _cand[-1]
+
+with st.expander("⚠️ Predicted Ramp Alerts (next day)", expanded=False):
+    if _ra:
+        radf = _pd.read_csv(_ra, parse_dates=["timestamp"])
+        show = radf[radf["duid"].isin(picked)].copy()
+        if not show.empty:
+            st.dataframe(show.sort_values(["duid","timestamp"]), use_container_width=True)
+        else:
+            st.info("No predicted ramps for selected DUIDs.")
+    else:
+        st.info("No ramp-alert file yet.")
+

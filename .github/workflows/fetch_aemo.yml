@@ -60,6 +60,14 @@ jobs:
         run: |
           python -m src.analyze_aemo_day --outdir data/reports
 
+      - name: Analyze latest day & build AI summary
+        run: |
+          python -m src.analyze_aemo_day --outdir data/reports
+
+      - name: Forecast next day & ramp alerts
+        run: |
+          python -m src.agent_forecast --outdir data/forecast
+
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
