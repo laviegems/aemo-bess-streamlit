@@ -106,12 +106,19 @@ if _fdir.exists():
 
 with st.expander("⚠️ Predicted Ramp Alerts (next day)", expanded=False):
     if _ra:
-        radf = _pd.read_csv(_ra, parse_dates=["timestamp"])
-        show = radf[radf["duid"].isin(picked)].copy()
-        if not show.empty:
-            st.dataframe(show.sort_values(["duid","timestamp"]), use_container_width=True)
+        try:
+            radf = _pd.read_csv(_ra, parse_dates=["timestamp"])
+        except Exception as e:
+            st.warning(f"Could not read {_ra.name}: {e}")
+            radf = _pd.DataFrame(columns=["timestamp","duid","predicted_ramp_MW"])
+
+        if radf.empty or {"timestamp","duid","predicted_ramp_MW"}.difference(radf.columns):
+            st.info("No predicted ramp alerts.")
         else:
-            st.info("No predicted ramps for selected DUIDs.")
+            show = radf[radf["duid"].isin(picked)].copy()
+            if show.empty:
+                st.info("No predicted ramps for selected DUIDs.")
+            else:
+                st.dataframe(show.sort_values(["duid","timestamp"]), use_container_width=True)
     else:
         st.info("No ramp-alert file yet.")
-
