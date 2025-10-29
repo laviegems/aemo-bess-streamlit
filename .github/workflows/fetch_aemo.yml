@@ -33,13 +33,13 @@ jobs:
         id: dates
         run: |
           python - <<'PY'
-import datetime as dt, zoneinfo, os, sys
-syd = zoneinfo.ZoneInfo("Australia/Sydney")
-yday = (dt.datetime.now(tz=syd) - dt.timedelta(days=1)).strftime("%Y-%m-%d")
-with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-    f.write(f"day={yday}\n")
-print("day", yday)
-PY
+          import datetime as dt, zoneinfo, os, sys
+          syd = zoneinfo.ZoneInfo("Australia/Sydney")
+          yday = (dt.datetime.now(tz=syd) - dt.timedelta(days=1)).strftime("%Y-%m-%d")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+          f.write(f"day={yday}\n")
+          print("day", yday)
+          PY
 
       - name: Fetch AEMO data
         run: |
