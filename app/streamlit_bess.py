@@ -1,6 +1,25 @@
 import os, pandas as pd, streamlit as st
 from pathlib import Path
 
+# ---- AI Summary panel (reads newest Markdown if present) ----
+from pathlib import Path
+import datetime as dt
+
+rep_dir = Path("data/reports")
+latest_rep = None
+if rep_dir.exists():
+    reports = sorted(rep_dir.glob("report_*.md"))
+    if reports:
+        latest_rep = reports[-1]
+
+with st.expander("📄 AI Daily Summary (latest)", expanded=True):
+    if latest_rep and latest_rep.exists():
+        st.markdown(latest_rep.read_text(encoding="utf-8"))
+        st.caption(f"Source: {latest_rep.name}")
+    else:
+        st.info("No summary report yet. It will appear after the next workflow run.")
+
+
 st.set_page_config(page_title="AEMO 5-min SCADA MW", layout="wide")
 
 # ✅ Safe optional auto-refresh (works only if your Streamlit version supports it)
@@ -8,7 +27,7 @@ if hasattr(st, "autorefresh"):
     st.autorefresh(interval=300_000, key="auto_refresh_5min")  # 5 minutes
 
 DATA_DIR = os.getenv("AEMO_DATA_DIR", "data/aemo")
-st.title("AEMO 5-min MW — Per-DUID view")
+st.title("AEMO 5-min MW Performance — Per-DUID view")
 
 
 def load_all():

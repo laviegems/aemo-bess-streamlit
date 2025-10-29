@@ -1,0 +1,38 @@
+{
+  "BUTLERSG": {
+    "duid": "BUTLERSG",
+    "day": "2025-10-27",
+    "n_rows": 204,
+    "p_min": 10.8,
+    "p_max": 11.000001,
+    "p_mean": 10.90000099509804,
+    "energy_mwh": 185.30001691666666,
+    "zero_frac": 0.0,
+    "neg_frac": 0.0,
+    "ramp_max": 0.1000009999999989,
+    "ramp_95p": 0.0,
+    "outages": [],
+    "anomalies": 2,
+    "notes": [
+      "2 spike/step anomalies flagged."
+    ]
+  },
+  "CLUNY": {
+    "duid": "CLUNY",
+    "day": "2025-10-27",
+    "n_rows": 204,
+    "p_min": 1.824216,
+    "p_max": 16.463722,
+    "p_mean": 6.2234145245098045,
+    "energy_mwh": 105.79804691666666,
+    "zero_frac": 0.0,
+    "neg_frac": 0.0,
+    "ramp_max": 14.325475,
+    "ramp_95p": 0.23254739999999957,
+    "outages": [],
+    "anomalies": 2,
+    "notes": [
+      "2 spike/step anomalies flagged."
+    ]
+  }
+}
