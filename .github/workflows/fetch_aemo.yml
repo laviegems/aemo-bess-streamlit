@@ -2,24 +2,33 @@ name: Daily AEMO Fetch
 
 on:
   schedule:
-    - cron: '15 13 * * *'   # ~00:15 AEDT / ~23:15 AEST
+    - cron: '15 13 * * *'    # ~00:15 AEDT / ~23:15 AEST
   workflow_dispatch:
 
 permissions:
   contents: write
 
 env:
-  DUIDS: CLUNY,BUTLERSG      # ← set the DUIDs you want (or "*" for all)
-  SOURCE: auto               # auto = try ARCHIVE (yesterday), fallback CURRENT
+  DUIDS: CLUNY,BUTLERSG      # or "*" to ingest all units
+  SOURCE: auto               # try ARCHIVE (yesterday), fallback to CURRENT
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Show repo contents (debug)
+        run: |
+          pwd
+          ls -la
+          echo "----- tree -----"
+          ls -R
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -28,17 +37,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Compute NEM-local date (yesterday AEST/AEDT)
+      - name: Compute Sydney yesterday (bash)
         id: dates
+        shell: bash
         run: |
-          python - <<'PY'
-          import os, datetime as dt, zoneinfo
-          syd = zoneinfo.ZoneInfo("Australia/Sydney")
-          yday = (dt.datetime.now(tz=syd) - dt.timedelta(days=1)).strftime("%Y-%m-%d")
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-              f.write(f"day={yday}\n")
-          print(f"day={yday}")
-          PY
+          echo "day=$(TZ=Australia/Sydney date -d 'yesterday' +%F)" >> "$GITHUB_OUTPUT"
+          echo "Computed day=${{ steps.dates.outputs.day }}"
 
       - name: Fetch AEMO data
         run: |
@@ -47,6 +51,10 @@ jobs:
             --duids "${{ env.DUIDS }}" \
             --source "${{ env.SOURCE }}" \
             --outdir data/aemo
+
+      - name: Show output files (debug)
+        run: |
+          ls -la data/aemo || true
 
       - name: Commit & push
         run: |
