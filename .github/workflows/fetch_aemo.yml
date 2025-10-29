@@ -2,25 +2,24 @@ name: Daily AEMO Fetch
 
 on:
   schedule:
-    - cron: '15 13 * * *'   # runs daily ~00:15 AEDT / ~23:15 AEST
-  workflow_dispatch: {}
+    - cron: '15 13 * * *'   # ~00:15 AEDT / ~23:15 AEST
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 env:
-  # 👇 set the DUIDs you actually want. Use "*" for all.
-  DUIDS: "CLUNY,BUTLERSG"
-  SOURCE: "auto"  # auto = try ARCHIVE (yesterday), fallback CURRENT
+  DUIDS: CLUNY,BUTLERSG      # ← set the DUIDs you want (or "*" for all)
+  SOURCE: auto               # auto = try ARCHIVE (yesterday), fallback CURRENT
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -33,11 +32,12 @@ jobs:
         id: dates
         run: |
           python - <<'PY'
+          import os, datetime as dt, zoneinfo
           syd = zoneinfo.ZoneInfo("Australia/Sydney")
           yday = (dt.datetime.now(tz=syd) - dt.timedelta(days=1)).strftime("%Y-%m-%d")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-          f.write(f"day={yday}\n")
-          print("day", yday)
+              f.write(f"day={yday}\n")
+          print(f"day={yday}")
           PY
 
       - name: Fetch AEMO data
@@ -53,5 +53,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "AEMO update ${{ steps.dates.outputs.day }} (${DUIDS})" || echo "Nothing to commit"
+          git commit -m "AEMO update ${{ steps.dates.outputs.day }} (${{ env.DUIDS }})" || echo "Nothing to commit"
           git push
