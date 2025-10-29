@@ -1,4 +1,4 @@
-name: Daily AEMO Fetch
+name: Daily AEMO Performance Report
 
 on:
   schedule:
@@ -55,6 +55,10 @@ jobs:
       - name: Show output files (debug)
         run: |
           ls -la data/aemo || true
+
+      - name: Analyze latest day & build AI summary
+        run: |
+          python -m src.analyze_aemo_day --outdir data/reports
 
       - name: Commit & push
         run: |
