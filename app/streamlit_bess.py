@@ -2,33 +2,25 @@ import os, pandas as pd, streamlit as st
 from pathlib import Path
 import datetime as dt
 
+# ==== AI OPERATOR STATUS BADGE ====
+status_file = Path("data/reports")  # folder where AI statuses live
+latest_status = None
+latest_day = None
 
-# ==== AI OPERATOR STATUS (single source) ====
-def get_latest_ai_status():
-    rep_dir = Path("data/reports")
-    if not rep_dir.exists():
-        return None, None
-    files = sorted(rep_dir.glob("ai_status_*.txt"))
-    if not files:
-        return None, None
-    f = files[-1]
-    day = f.stem.replace("ai_status_", "")
-    try:
-        txt = f.read_text(encoding="utf-8").strip()
-    except Exception:
-        txt = ""
-    return day, txt
-
-latest_day, latest_status = get_latest_ai_status()
+if status_file.exists():
+    files = sorted(status_file.glob("ai_status_*.txt"))
+    if files:
+        latest_file = files[-1]
+        latest_day = latest_file.stem.replace("ai_status_", "")
+        latest_status = latest_file.read_text(encoding="utf-8")
 
 if latest_status:
-    # Heuristic: alert if it contains "⚠" or the word "anomal"
-    if ("⚠" in latest_status) or ("anomal" in latest_status.lower()):
-        st.error(f"🔥 AI Operator Alert ({latest_day})<br>{latest_status}", unsafe_allow_html=True)
+    if "⚠" in latest_status or "anomal" in latest_status.lower():
+        st.error(f"🔥 AI Operator Alert for {latest_day}:<br>{latest_status}", unsafe_allow_html=True)
     else:
         st.success(f"✅ All Systems Nominal ({latest_day})<br>{latest_status}", unsafe_allow_html=True)
 else:
-    st.info("⏳ Awaiting today's AI Operator status…")
+    st.info("⏳ Awaiting today's AI Operator status...")
 
 # ---- AI Summary panel (reads newest Markdown if present) ----
 rep_dir = Path("data/reports")
