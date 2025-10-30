@@ -1,9 +1,37 @@
 import os, pandas as pd, streamlit as st
 from pathlib import Path
-
-# ---- AI Summary panel (reads newest Markdown if present) ----
 import datetime as dt
 
+# ==== AI OPERATOR STATUS BADGE ====
+status_file = Path("data/reports")  # folder where AI statuses live
+latest_status = None
+latest_day = None
+
+if status_file.exists():
+    files = sorted(status_file.glob("ai_status_*.txt"))
+    if files:
+        latest_file = files[-1]
+        latest_day = latest_file.stem.replace("ai_status_", "")
+        latest_status = latest_file.read_text(encoding="utf-8")
+
+if latest_status:
+    if "⚠" in latest_status or "anomal" in latest_status.lower():
+        st.error(f"🔥 AI Operator Alert for {latest_day}:<br>{latest_status}", unsafe_allow_html=True)
+    else:
+        st.success(f"✅ All Systems Nominal ({latest_day})<br>{latest_status}", unsafe_allow_html=True)
+else:
+    st.info("⏳ Awaiting today's AI Operator status...")
+
+# ---- AI Operator Status ----
+from pathlib import Path as _P
+with st.expander("🧠 AI Operator Status", expanded=True):
+    f = _P("data/reports/ai_agent_status.txt")
+    if f.exists():
+        st.success(f.read_text(encoding="utf-8"))
+    else:
+        st.info("Awaiting today's AI operator status…")
+
+# ---- AI Summary panel (reads newest Markdown if present) ----
 rep_dir = Path("data/reports")
 latest_rep = None
 if rep_dir.exists():
@@ -51,7 +79,9 @@ latest_idx = len(days) - 1
 colA, colB = st.columns(2)
 day = colA.selectbox("Day", days, index=latest_idx)
 duids = sorted(df["duid"].unique())
-picked = colB.multiselect("DUID(s)", duids, default=[duids[0]])
+preferred = ["CLUNY","BUTLERSG","CRURWF1","DUNDWF3","JBUTTERS","LOYYB2"]
+defaults = [d for d in preferred if d in duids] or [duids[0]]
+picked = colB.multiselect("DUID(s)", duids, default=defaults)
 
 view = df[(df["day"] == day) & (df["duid"].isin(picked))]
 st.write(f"**{day}** — rows: {len(view):,}")
