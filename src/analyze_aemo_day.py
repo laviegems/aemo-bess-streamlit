@@ -37,7 +37,9 @@ def main():
         d: vars(s) for d, s in sums.items()
     }
     with open(json_path, "w", encoding="utf-8") as fp:
-        json.dump(as_dict, fp, ensure_ascii=False, indent=2)
+        # Ensure all numpy types are converted to native Python types
+        as_dict_py = json.loads(json.dumps(as_dict, default=lambda x: float(x) if hasattr(x, "item") else x))
+        json.dump(as_dict_py, fp, ensure_ascii=False, indent=2)
 
     print(f"✅ wrote {md_path}")
     print(f"✅ wrote {json_path}")
