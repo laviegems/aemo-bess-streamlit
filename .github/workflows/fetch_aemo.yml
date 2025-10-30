@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 env:
-  DUIDS: CLUNY,BUTLERSG      # or "*" to ingest all units
-  SOURCE: auto               # try ARCHIVE (yesterday), fallback to CURRENT
+  DUIDS: CLUNY,BUTLERSG,CRURWF1,DUNDWF3,JBUTTERS,LOYYB2
+  SOURCE: auto
 
 jobs:
   fetch:
@@ -36,6 +36,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Run AI ReAct Operator
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python -m src.agent_react
 
       - name: Compute Sydney yesterday (bash)
         id: dates
@@ -67,6 +73,10 @@ jobs:
       - name: Forecast next day & ramp alerts
         run: |
           python -m src.agent_forecast --outdir data/forecast
+
+      - name: AI ReAct agent operational decision
+        run: |
+          python -m src.agent_react
 
       - name: Commit & push
         run: |
