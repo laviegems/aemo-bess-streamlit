@@ -15,12 +15,13 @@ if status_file.exists():
         latest_status = latest_file.read_text(encoding="utf-8")
 
 if latest_status:
-    if "⚠" in latest_status or "anomal" in latest_status.lower():
-        st.error(f"🔥 AI Operator Alert for {latest_day}:<br>{latest_status}", unsafe_allow_html=True)
+    # Alert if "⚠" found or "anomal" text
+    if ("⚠" in latest_status) or ("anomal" in latest_status.lower()):
+        st.error(f"🔥 AI Operator Alert ({latest_day})\n\n{latest_status}")
     else:
-        st.success(f"✅ All Systems Nominal ({latest_day})<br>{latest_status}", unsafe_allow_html=True)
+        st.success(f"✅ All Systems Nominal ({latest_day})\n\n{latest_status}")
 else:
-    st.info("⏳ Awaiting today's AI Operator status...")
+    st.info("⏳ Awaiting today's AI Operator status…")
 
 # ---- AI Summary panel (reads newest Markdown if present) ----
 rep_dir = Path("data/reports")
