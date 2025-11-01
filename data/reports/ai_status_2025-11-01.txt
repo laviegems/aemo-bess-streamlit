@@ -1,0 +1,1 @@
+⚠️ Elevated risk. BUTLERSG: anomalies=3, ramp_max=0.1 MW/5min; CLUNY: anomalies=3, ramp_max=7.4 MW/5min; CRURWF1: anomalies=0, ramp_max=32.3 MW/5min; DUNDWF3: anomalies=1, ramp_max=6.4 MW/5min; JBUTTERS: anomalies=5, ramp_max=101.9 MW/5min
